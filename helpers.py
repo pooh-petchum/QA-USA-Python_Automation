@@ -1,31 +1,40 @@
 import json
-import re
+import time
+from selenium.common import WebDriverException
+import ssl
+import urllib.request
 
-
-def retrieve_phone_code(driver):
-    logs = driver.get_log("performance")
-
-    for log in logs:
-        message = json.loads(log["message"])["message"]
-
-        if message["method"] != "Network.responseReceived":
+def retrieve_phone_code(driver) -> str:
+    code = None
+    for i in range(10):
+        try:
+            logs = [
+                log["message"] for log in driver.get_log("performance")
+                if log.get("message") and "api/v1/number?number" in log.get("message")
+            ]
+            for log in reversed(logs):
+                message_data = json.loads(log)["message"]
+                body = driver.execute_cdp_cmd(
+                    "Network.getResponseBody",
+                    {"requestId": message_data["params"]["requestId"]}
+                )
+                code = ''.join([x for x in body["body"] if x.isdigit()])
+        except WebDriverException:
+            time.sleep(1)
             continue
+        if code:
+            return code
+    raise Exception(
+        "No phone confirmation code found.\n"
+        "Please use retrieve_phone_code only after the code was requested in your application."
+    )
 
-        url = message.get("params", {}).get("response", {}).get("url", "")
-
-        if "api/v1/number" not in url:
-            continue
-
-        request_id = message["params"]["requestId"]
-        response_body = driver.execute_cdp_cmd(
-            "Network.getResponseBody",
-            {"requestId": request_id}
-        )
-
-        body = response_body.get("body", "")
-        code_match = re.search(r'\d{4}', body)
-
-        if code_match:
-            return code_match.group(0)
-
-    return None
+def is_url_reachable(url):
+    try:
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(url, context=ssl_ctx) as response:
+            return response.status == 200
+    except Exception:
+        return False
