@@ -5,11 +5,13 @@ class UrbanRoutesPage:
     TO_LOCATOR = (By.ID, 'to')
     CALL_TAXI_BUTTON_LOCATOR = (By.XPATH, '//button[contains(text(),"Call a taxi")]')
     SUPPORTIVE_PLAN_LOCATOR = (By.XPATH, '//div[contains(text(),"Supportive")]')
+    ACTIVE_PLAN = (By.XPATH, '//div[@class="tcard active"]//div[@class="tcard-title"]')
     BIKE_ICON_LOCATOR = (By.XPATH, '//img[contains(@src,"bike")]')
     BIKE_TEXT_LOCATOR = (By.XPATH, '//div[contains(text(),"Bike")]')
     DURATION_TEXT_LOCATOR = (By.XPATH, '//*[contains(text(),"Duration")]')
     PHONE_FIELD_LOCATOR = (By.CLASS_NAME, 'np-button')
     PHONE_INPUT_LOCATOR = (By.ID, 'phone')
+    PHONE_TEXT_LOCATOR = (By.CSS_SELECTOR, '.np-button .np-text')
     NEXT_BUTTON_LOCATOR = (By.XPATH, '//button[text()="Next"]')
     CODE_INPUT_LOCATOR = (By.ID, 'code')
     CONFIRM_BUTTON_LOCATOR = (By.XPATH, '//button[text()="Confirm"]')
@@ -50,11 +52,11 @@ class UrbanRoutesPage:
         self.driver.find_element(*self.SUPPORTIVE_PLAN_LOCATOR).click()
 
     def get_supportive_plan_text(self):
-        return self.driver.find_element(*self.SUPPORTIVE_PLAN_LOCATOR).text
+        return self.driver.find_element(*self.ACTIVE_PLAN).text
 
     def click_payment_method(self):
         element = self.driver.find_element(*self.PAYMENT_METHOD_LOCATOR)
-        self.driver.execute_script("arguments[0].click();", element)
+        element.click()
 
     def get_payment_method_text(self):
         return self.driver.find_element(*self.PAYMENT_METHOD_TEXT_LOCATOR).text
@@ -66,7 +68,7 @@ class UrbanRoutesPage:
         self.driver.find_element(*self.PHONE_INPUT_LOCATOR).send_keys(phone_number)
 
     def get_phone_number_value(self):
-        return self.driver.find_element(*self.PHONE_INPUT_LOCATOR).get_property("value")
+        return self.driver.find_element(*self.PHONE_TEXT_LOCATOR).text
 
     def enter_card_number(self, card_number):
         self.driver.find_element(*self.CARD_NUMBER_LOCATOR).send_keys(card_number)
@@ -117,9 +119,6 @@ class UrbanRoutesPage:
 
     def click_bike_icon(self):
         self.driver.find_element(*self.BIKE_ICON_LOCATOR).click()
-
-    def get_bike_text(self):
-        return self.driver.find_element(*self.BIKE_TEXT_LOCATOR).text
 
     def get_duration_text(self):
         return self.driver.find_element(*self.DURATION_TEXT_LOCATOR).text
